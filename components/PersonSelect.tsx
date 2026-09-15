@@ -38,6 +38,8 @@ interface PersonSelectProps {
   placeholder?: string;
   required?: boolean;
   emptyLabel?: string;
+  /** Associa o input oculto a um <form> em outro ponto do DOM (ex.: célula de tabela). */
+  formId?: string;
 }
 
 /** Select único de pessoa, com busca — nunca aceita nome digitado livremente. */
@@ -48,6 +50,7 @@ export function PersonSelect({
   placeholder = "Buscar por nome...",
   required = false,
   emptyLabel = "Nenhuma pessoa selecionada",
+  formId,
 }: PersonSelectProps) {
   const [selectedId, setSelectedId] = useState<number | null>(defaultValue);
   const [query, setQuery] = useState("");
@@ -70,7 +73,7 @@ export function PersonSelect({
 
   return (
     <div className="relative" ref={containerRef}>
-      <input type="hidden" name={name} value={selectedId ?? ""} required={required} />
+      <input type="hidden" name={name} value={selectedId ?? ""} required={required} form={formId} />
       {selected ? (
         <div className="flex items-center justify-between gap-2 rounded-xl border border-brand-ink/15 bg-white px-3 py-2 text-sm">
           <OptionRow person={selected} />
@@ -129,6 +132,8 @@ interface PersonMultiSelectProps {
   people: PersonOption[];
   defaultValues?: number[];
   placeholder?: string;
+  /** Associa os inputs ocultos a um <form> em outro ponto do DOM (ex.: célula de tabela). */
+  formId?: string;
 }
 
 /** Multi-select de pessoas (chips), com busca — nunca aceita nome digitado livremente. */
@@ -137,6 +142,7 @@ export function PersonMultiSelect({
   people,
   defaultValues = [],
   placeholder = "Adicionar pessoa...",
+  formId,
 }: PersonMultiSelectProps) {
   const [selectedIds, setSelectedIds] = useState<number[]>(defaultValues);
   const [query, setQuery] = useState("");
@@ -162,7 +168,7 @@ export function PersonMultiSelect({
   return (
     <div className="relative" ref={containerRef}>
       {selectedIds.map((id) => (
-        <input key={id} type="hidden" name={name} value={id} />
+        <input key={id} type="hidden" name={name} value={id} form={formId} />
       ))}
       <div className="flex flex-wrap gap-1.5 rounded-xl border border-brand-ink/15 bg-white p-2">
         {selectedPeople.map((p) => (

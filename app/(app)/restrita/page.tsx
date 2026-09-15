@@ -7,6 +7,12 @@ const SECTIONS = [
   { href: "/restrita/notas", label: "Notas confidenciais", icon: "🔒", desc: "Anotações internas" },
   { href: "/restrita/dados-sensiveis", label: "Dados sensíveis", icon: "🪪", desc: "Matrícula e documentos" },
   { href: "/restrita/relatorio", label: "Relatório de produção", icon: "📈", desc: "Quem produziu quanto" },
+  {
+    href: "/restrita/acompanhamento",
+    label: "Acompanhamento por congresso",
+    icon: "🗂️",
+    desc: "Trabalhos, organizadores e certificados",
+  },
   { href: "/restrita/usuarios", label: "Gestão de usuários", icon: "👤", desc: "Login e nível de acesso" },
 ];
 

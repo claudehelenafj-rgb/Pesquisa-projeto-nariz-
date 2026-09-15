@@ -113,6 +113,16 @@ export const STATUS_IDEIA: { value: StatusIdeia; label: string }[] = [
   { value: "descartada", label: "Descartada" },
 ];
 
+export type StatusSimNao = "sim" | "nao";
+
+export type StatusAprovacaoTrabalho = "aprovado" | "reprovado" | "aguardando";
+
+export const STATUS_APROVACAO_TRABALHO: { value: StatusAprovacaoTrabalho; label: string }[] = [
+  { value: "aguardando", label: "Aguardando resposta" },
+  { value: "aprovado", label: "Aprovado" },
+  { value: "reprovado", label: "Reprovado" },
+];
+
 export const ROLE_LABEL: Record<Role, string> = {
   membro: "Membro",
   coordenadora: "Coordenadora",

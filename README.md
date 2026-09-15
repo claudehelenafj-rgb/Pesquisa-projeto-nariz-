@@ -160,7 +160,9 @@ ideia etc.).
 - **Área Restrita** (coordenadora/presidência): atas de reunião, notas confidenciais,
   dados cadastrais sensíveis (matrícula/documento — nunca exibidos fora daqui),
   relatório de produção (quem nunca produziu, quem está sobrecarregado), gestão de
-  usuários.
+  usuários, e **acompanhamento de trabalhos por congresso** — tabela totalmente
+  editável (congresso, participantes, trabalho, dois organizadores, status de envio ao
+  orientador/congresso, aprovação e upload de certificado em PDF).
 - **Busca global** (`/busca`) por membro, congresso, tema/eixo temático e trabalho.
 - **Exportação CSV** em Membros, Congressos, Ideias e Trabalhos.
 - Não indexável: `robots.txt` bloqueia tudo e cada página envia `noindex, nofollow`.

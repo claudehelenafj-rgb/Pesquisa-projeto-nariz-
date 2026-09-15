@@ -184,9 +184,35 @@ function migrate(db: Database.Database) {
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
 
+    CREATE TABLE IF NOT EXISTS work_tracking (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      congress_id INTEGER REFERENCES congresses(id) ON DELETE SET NULL,
+      nome_trabalho TEXT,
+      organizador1_id INTEGER REFERENCES members(id) ON DELETE SET NULL,
+      organizador2_id INTEGER REFERENCES members(id) ON DELETE SET NULL,
+      enviado_orientador TEXT NOT NULL DEFAULT 'nao' CHECK (enviado_orientador IN ('sim','nao')),
+      orientador_corretor_id INTEGER REFERENCES members(id) ON DELETE SET NULL,
+      enviado_congresso TEXT NOT NULL DEFAULT 'nao' CHECK (enviado_congresso IN ('sim','nao')),
+      status_aprovacao TEXT NOT NULL DEFAULT 'aguardando' CHECK (status_aprovacao IN ('aprovado','reprovado','aguardando')),
+      certificado_filename TEXT,
+      certificado_mime TEXT,
+      certificado_size INTEGER,
+      certificado_data BLOB,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS work_tracking_participants (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      tracking_id INTEGER NOT NULL REFERENCES work_tracking(id) ON DELETE CASCADE,
+      member_id INTEGER NOT NULL REFERENCES members(id) ON DELETE CASCADE,
+      UNIQUE(tracking_id, member_id)
+    );
+
     CREATE INDEX IF NOT EXISTS idx_members_tipo ON members(tipo);
     CREATE INDEX IF NOT EXISTS idx_works_status ON works(status);
     CREATE INDEX IF NOT EXISTS idx_ideas_status ON ideas(status);
+    CREATE INDEX IF NOT EXISTS idx_work_tracking_congress ON work_tracking(congress_id);
   `);
 }
 

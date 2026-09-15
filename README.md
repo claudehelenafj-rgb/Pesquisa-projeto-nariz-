@@ -39,6 +39,33 @@ Para recriar o banco do zero a qualquer momento:
 npm run seed -- --reset
 ```
 
+## Deploy (colocar no ar para o grupo)
+
+Como o banco é um arquivo SQLite local, o serviço de hospedagem precisa oferecer
+**disco persistente** (Vercel sozinho não serve — o sistema de arquivos é apagado a
+cada deploy). O caminho mais simples é o **Railway**, que tem plano gratuito com disco
+persistente incluso:
+
+1. Crie uma conta em [railway.app](https://railway.app) (dá para entrar com a conta do
+   GitHub).
+2. **New Project → Deploy from GitHub repo** e selecione este repositório
+   (`Pesquisa-projeto-nariz-`), branch `claude/brave-feynman-bv1xhv` (ou a branch
+   principal, se já tiver feito merge). O Railway detecta o Next.js automaticamente
+   (usa o `railway.json` deste repositório para build/start).
+3. Em **Variables**, adicione:
+   - `SESSION_SECRET` — gere um valor com `openssl rand -base64 32` (ou peça para o
+     Railway gerar um valor aleatório).
+4. Em **Settings → Volumes**, adicione um volume e monte-o no caminho `/app/db`
+   (é onde o SQLite grava o arquivo `nariz.db`) — isso garante que os dados sobrevivem a
+   redeploys e reinícios.
+5. Clique em **Deploy**. Depois do primeiro build, vá em **Settings → Networking →
+   Generate Domain** para ter uma URL pública (`algumacoisa.up.railway.app`).
+6. Acesse a URL gerada, entre com `coordenacao` / `nariz2024` (ou `presidencia`) e
+   troque a senha. Depois crie os logins reais do grupo em **Área Restrita → Gestão de
+   usuários**.
+
+Cada `git push` na branch conectada dispara um novo deploy automaticamente.
+
 ### Usuários iniciais
 
 | Usuário | Senha | Nível |

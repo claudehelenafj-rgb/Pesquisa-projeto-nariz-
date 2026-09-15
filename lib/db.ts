@@ -4,6 +4,7 @@ import fs from "fs";
 import bcrypt from "bcryptjs";
 import { MEMBROS } from "../data/membros";
 import { ORIENTADORES } from "../data/orientadores";
+import type { Role } from "./types";
 
 const DB_DIR = path.join(process.cwd(), "db");
 const DB_PATH = path.join(DB_DIR, "nariz.db");
@@ -20,6 +21,7 @@ function createConnection(): Database.Database {
   db.pragma("foreign_keys = ON");
   migrate(db);
   seedIfEmpty(db);
+  seedInitialAccounts(db);
   return db;
 }
 
@@ -230,4 +232,94 @@ function seedIfEmpty(db: Database.Database) {
   });
 
   seedTx();
+}
+
+interface InitialAccount {
+  username: string;
+  nome: string;
+  geracao: string;
+  role: Role;
+  senhaProvisoria: string;
+}
+
+// Contas nominais iniciais, vinculadas a membros já existentes no roster.
+// Idempotente: só insere quem ainda não tem login (por username). As senhas
+// são provisórias — must_change_password=1 obriga a troca no primeiro acesso
+// (reforçado em middleware.ts).
+const INITIAL_ACCOUNTS: InitialAccount[] = [
+  {
+    username: "helena.xopivitos",
+    nome: "Helena Aben-Athar Ponte",
+    geracao: "Xopivitos",
+    role: "coordenadora",
+    senhaProvisoria: "TpKw4gKehP",
+  },
+  {
+    username: "amanda.xeblekivis",
+    nome: "Amanda de Alevir",
+    geracao: "Xeblekivis",
+    role: "presidencia",
+    senhaProvisoria: "X4uQjYuGTk",
+  },
+  {
+    username: "luana.xeblekivis",
+    nome: "Luana Osterno Luna",
+    geracao: "Xeblekivis",
+    role: "presidencia",
+    senhaProvisoria: "AEhPyr3thi",
+  },
+  {
+    username: "livia.xermigulhas",
+    nome: "Lívia",
+    geracao: "Xermigulhas",
+    role: "membro",
+    senhaProvisoria: "UFdCrbf89g",
+  },
+  {
+    username: "stela.xermigulhas",
+    nome: "Stela",
+    geracao: "Xermigulhas",
+    role: "membro",
+    senhaProvisoria: "dHjecnLbAU",
+  },
+  {
+    username: "lena.xopivitos",
+    nome: "Lena Rodrigues Picanço",
+    geracao: "Xopivitos",
+    role: "membro",
+    senhaProvisoria: "XmGh3SP8FQ",
+  },
+  {
+    username: "iasmin.xeblekivis",
+    nome: "Iasmin Diniz Teixeira de Paula",
+    geracao: "Xeblekivis",
+    role: "membro",
+    senhaProvisoria: "Lc6jXiHP3s",
+  },
+];
+
+function seedInitialAccounts(db: Database.Database) {
+  const findUser = db.prepare(`SELECT id FROM users WHERE username = ?`);
+  const findMember = db.prepare(
+    `SELECT id FROM members WHERE nome = ? AND geracao = ? AND tipo = 'membro'`
+  );
+  const insertUser = db.prepare(
+    `INSERT INTO users (username, password_hash, role, member_id, must_change_password)
+     VALUES (?, ?, ?, ?, 1)`
+  );
+
+  for (const acc of INITIAL_ACCOUNTS) {
+    if (findUser.get(acc.username)) continue;
+
+    const member = findMember.get(acc.nome, acc.geracao) as { id: number } | undefined;
+    if (!member) {
+      // eslint-disable-next-line no-console
+      console.warn(
+        `[projeto-nariz] seed: membro "${acc.nome}" (${acc.geracao}) não encontrado — login "${acc.username}" não foi criado.`
+      );
+      continue;
+    }
+
+    insertUser.run(acc.username, bcrypt.hashSync(acc.senhaProvisoria, 10), acc.role, member.id);
+  }
 }

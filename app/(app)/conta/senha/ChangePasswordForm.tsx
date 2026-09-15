@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useFormState, useFormStatus } from "react-dom";
 import { changePasswordAction, type ChangePasswordState } from "@/lib/auth-actions";
 
@@ -44,7 +45,10 @@ export default function ChangePasswordForm() {
       )}
       {state.success && (
         <p className="rounded-xl bg-brand-teal/10 px-3 py-2 text-sm font-medium text-brand-teal">
-          Senha atualizada com sucesso.
+          Senha atualizada com sucesso.{" "}
+          <Link href="/" className="underline">
+            Ir para o início
+          </Link>
         </p>
       )}
       <SubmitButton />

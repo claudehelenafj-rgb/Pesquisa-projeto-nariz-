@@ -73,10 +73,30 @@ Cada `git push` na branch conectada dispara um novo deploy automaticamente.
 | `coordenacao` | `nariz2024` | Coordenadora |
 | `presidencia` | `nariz2024` | Presidência |
 
-Essas contas não estão vinculadas a uma pessoa específica do roster. Após o primeiro
-login, troque a senha (ícone ⚙️ no menu) e use **Área Restrita → Gestão de usuários**
-para criar logins reais vinculados aos membros do grupo e definir o nível de acesso de
-cada um.
+Essas duas contas genéricas não estão vinculadas a uma pessoa do roster — use-as só
+para o primeiro acesso, depois prefira as contas nominais abaixo (ou crie mais em
+**Área Restrita → Gestão de usuários**).
+
+### Contas nominais (seed inicial)
+
+Criadas automaticamente (idempotente, `lib/db.ts` → `seedInitialAccounts`) e já
+vinculadas ao respectivo membro do roster. Todas com senha **provisória** — o sistema
+obriga a troca no primeiro login (redireciona para "Trocar senha" antes de liberar o
+resto do site).
+
+| Usuário | Senha provisória | Pessoa | Nível |
+|---|---|---|---|
+| `helena.xopivitos` | `TpKw4gKehP` | Helena Aben-Athar Ponte | Coordenadora |
+| `amanda.xeblekivis` | `X4uQjYuGTk` | Amanda de Alevir | Presidência |
+| `luana.xeblekivis` | `AEhPyr3thi` | Luana Osterno Luna | Presidência |
+| `livia.xermigulhas` | `UFdCrbf89g` | Lívia | Membro |
+| `stela.xermigulhas` | `dHjecnLbAU` | Stela | Membro |
+| `lena.xopivitos` | `XmGh3SP8FQ` | Lena Rodrigues Picanço | Membro |
+| `iasmin.xeblekivis` | `Lc6jXiHP3s` | Iasmin Diniz Teixeira de Paula | Membro |
+
+Essas contas só são criadas na primeira vez que o servidor sobe com este código (local
+ou após o próximo deploy) — se algum username já existir, o seed pula e não sobrescreve
+nada.
 
 ## Estrutura
 

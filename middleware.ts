@@ -3,6 +3,7 @@ import { unsealData } from "iron-session";
 import { sessionOptions, type SessionData } from "./lib/session";
 
 const PUBLIC_PATHS = new Set(["/login", "/acesso-negado"]);
+const PASSWORD_CHANGE_PATH = "/conta/senha";
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -35,6 +36,17 @@ export async function middleware(request: NextRequest) {
     session.role !== "presidencia"
   ) {
     return NextResponse.redirect(new URL("/acesso-negado", request.url));
+  }
+
+  // Força a troca de senha provisória antes de liberar o resto do sistema.
+  // Só em navegações (GET) — nunca intercepta o POST de uma Server Action
+  // (ex.: o próprio botão de trocar senha, ou sair).
+  if (
+    session.mustChangePassword &&
+    request.method === "GET" &&
+    pathname !== PASSWORD_CHANGE_PATH
+  ) {
+    return NextResponse.redirect(new URL(PASSWORD_CHANGE_PATH, request.url));
   }
 
   return NextResponse.next();

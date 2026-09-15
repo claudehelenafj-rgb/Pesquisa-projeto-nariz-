@@ -25,9 +25,14 @@ export default async function CongressosPage({
     <div>
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-extrabold text-brand-ink">Congressos</h1>
-        <Link href="/congressos/novo" className="btn-primary">
-          + Novo congresso
-        </Link>
+        <div className="flex gap-2">
+          <Link href="/api/export/congressos" className="btn-secondary">
+            Exportar CSV
+          </Link>
+          <Link href="/congressos/novo" className="btn-primary">
+            + Novo congresso
+          </Link>
+        </div>
       </div>
 
       <form className="card mb-6 flex flex-wrap items-end gap-3 p-4">

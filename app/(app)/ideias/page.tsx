@@ -17,9 +17,14 @@ export default async function IdeiasPage({
     <div>
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-extrabold text-brand-ink">Banco de Ideias</h1>
-        <Link href="/ideias/nova" className="btn-primary">
-          + Nova ideia
-        </Link>
+        <div className="flex gap-2">
+          <Link href="/api/export/ideias" className="btn-secondary">
+            Exportar CSV
+          </Link>
+          <Link href="/ideias/nova" className="btn-primary">
+            + Nova ideia
+          </Link>
+        </div>
       </div>
 
       <form className="card mb-6 flex flex-wrap items-end gap-3 p-4">

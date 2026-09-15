@@ -29,9 +29,14 @@ export default async function TrabalhosPage({
     <div>
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-extrabold text-brand-ink">Trabalhos em andamento</h1>
-        <Link href="/trabalhos/novo" className="btn-primary">
-          + Novo trabalho
-        </Link>
+        <div className="flex gap-2">
+          <Link href="/api/export/trabalhos" className="btn-secondary">
+            Exportar CSV
+          </Link>
+          <Link href="/trabalhos/novo" className="btn-primary">
+            + Novo trabalho
+          </Link>
+        </div>
       </div>
 
       <form className="card mb-6 flex flex-wrap items-end gap-3 p-4">

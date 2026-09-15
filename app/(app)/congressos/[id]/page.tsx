@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getCongressById, getCongressResponsibleIds } from "@/lib/queries/congresses";
+import { getCongressById, getCongressResponsibleIds, getCongressParticipantIds } from "@/lib/queries/congresses";
 import { getMembersOnly } from "@/lib/queries/people";
 import { getSuggestedMembers } from "@/lib/queries/suggestions";
 import { updateCongressAction, deleteCongressAction } from "../actions";
@@ -14,6 +14,7 @@ export default async function CongressoDetailPage({ params }: { params: { id: st
 
   const members = getMembersOnly();
   const responsavelIds = getCongressResponsibleIds(id);
+  const participanteIds = getCongressParticipantIds(id);
   const suggestions = getSuggestedMembers(congress);
 
   return (
@@ -33,6 +34,7 @@ export default async function CongressoDetailPage({ params }: { params: { id: st
           members={members}
           congress={congress}
           responsavelIds={responsavelIds}
+          participanteIds={participanteIds}
           submitLabel="Salvar alterações"
         />
       </div>

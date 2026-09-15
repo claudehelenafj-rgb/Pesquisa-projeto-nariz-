@@ -73,7 +73,23 @@ export function PersonSelect({
 
   return (
     <div className="relative" ref={containerRef}>
-      <input type="hidden" name={name} value={selectedId ?? ""} required={required} form={formId} />
+      <input type="hidden" name={name} value={selectedId ?? ""} form={formId} />
+      {required && (
+        // input[type=hidden] nunca participa da validação nativa do navegador, e
+        // readOnly desativa o próprio "required" — por isso este proxy precisa ser
+        // um input comum (só travado via pointer-events/tabIndex) para realmente
+        // bloquear o envio e mostrar o balão "preencha este campo".
+        <input
+          type="text"
+          required
+          value={selectedId ? "ok" : ""}
+          onChange={() => {}}
+          tabIndex={-1}
+          aria-hidden="true"
+          form={formId}
+          className="pointer-events-none absolute inset-0 h-full w-full cursor-default opacity-0"
+        />
+      )}
       {selected ? (
         <div className="flex items-center justify-between gap-2 rounded-xl border border-brand-ink/15 bg-white px-3 py-2 text-sm">
           <OptionRow person={selected} />
@@ -134,6 +150,8 @@ interface PersonMultiSelectProps {
   placeholder?: string;
   /** Associa os inputs ocultos a um <form> em outro ponto do DOM (ex.: célula de tabela). */
   formId?: string;
+  /** Número máximo de pessoas selecionáveis — bloqueia adicionar além disso. */
+  max?: number;
 }
 
 /** Multi-select de pessoas (chips), com busca — nunca aceita nome digitado livremente. */
@@ -143,12 +161,16 @@ export function PersonMultiSelect({
   defaultValues = [],
   placeholder = "Adicionar pessoa...",
   formId,
+  max,
 }: PersonMultiSelectProps) {
-  const [selectedIds, setSelectedIds] = useState<number[]>(defaultValues);
+  const [selectedIds, setSelectedIds] = useState<number[]>(
+    max ? defaultValues.slice(0, max) : defaultValues
+  );
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
+  const atLimit = typeof max === "number" && selectedIds.length >= max;
   const excludeIds = useMemo(() => new Set(selectedIds), [selectedIds]);
   const options = useFilteredPeople(people, query, excludeIds);
   const selectedPeople = selectedIds
@@ -187,19 +209,24 @@ export function PersonMultiSelect({
             </button>
           </span>
         ))}
-        <input
-          type="text"
-          className="min-w-[10rem] flex-1 border-none px-1 py-1 text-sm outline-none"
-          placeholder={placeholder}
-          value={query}
-          onChange={(e) => {
-            setQuery(e.target.value);
-            setOpen(true);
-          }}
-          onFocus={() => setOpen(true)}
-        />
+        {!atLimit && (
+          <input
+            type="text"
+            className="min-w-[10rem] flex-1 border-none px-1 py-1 text-sm outline-none"
+            placeholder={placeholder}
+            value={query}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              setOpen(true);
+            }}
+            onFocus={() => setOpen(true)}
+          />
+        )}
       </div>
-      {open && (
+      {atLimit && (
+        <p className="mt-1 text-xs text-brand-ink/40">Máximo de {max} pessoas atingido.</p>
+      )}
+      {open && !atLimit && (
         <div className="absolute z-20 mt-1 max-h-60 w-full overflow-auto rounded-xl border border-brand-ink/10 bg-white py-1 shadow-lg">
           {options.length === 0 && (
             <p className="px-3 py-2 text-sm text-brand-ink/40">Nenhuma pessoa encontrada</p>
@@ -210,7 +237,7 @@ export function PersonMultiSelect({
               key={p.id}
               className="flex w-full items-center px-3 py-2 text-left text-sm hover:bg-brand-cream"
               onClick={() => {
-                setSelectedIds((ids) => [...ids, p.id]);
+                setSelectedIds((ids) => (max && ids.length >= max ? ids : [...ids, p.id]));
                 setQuery("");
               }}
             >

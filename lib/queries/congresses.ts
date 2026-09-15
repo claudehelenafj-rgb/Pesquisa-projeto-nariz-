@@ -49,6 +49,14 @@ export function getCongressResponsibleIds(congressId: number): number[] {
   return rows.map((r) => r.member_id);
 }
 
+export function getCongressParticipantIds(congressId: number): number[] {
+  const db = getDb();
+  const rows = db
+    .prepare(`SELECT member_id FROM congress_participants WHERE congress_id = ?`)
+    .all(congressId) as { member_id: number }[];
+  return rows.map((r) => r.member_id);
+}
+
 export interface CongressWithResponsibles extends Congress {
   responsaveis: { id: number; nome: string; geracao: string | null; cor: string | null }[];
 }

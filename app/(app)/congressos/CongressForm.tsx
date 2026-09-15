@@ -9,6 +9,7 @@ interface CongressFormProps {
   members: PersonOption[];
   congress?: Congress;
   responsavelIds?: number[];
+  participanteIds?: number[];
   submitLabel: string;
 }
 
@@ -17,6 +18,7 @@ export default function CongressForm({
   members,
   congress,
   responsavelIds = [],
+  participanteIds = [],
   submitLabel,
 }: CongressFormProps) {
   return (
@@ -77,6 +79,12 @@ export default function CongressForm({
       <div>
         <label className="label">Responsáveis</label>
         <PersonMultiSelect name="responsaveis" people={members} defaultValues={responsavelIds} />
+      </div>
+
+      <div>
+        <label className="label">Participantes vinculados</label>
+        <p className="mb-2 text-xs text-brand-ink/40">Membros que vão a este congresso.</p>
+        <PersonMultiSelect name="participantes" people={members} defaultValues={participanteIds} />
       </div>
 
       <button type="submit" className="btn-primary">

@@ -26,6 +26,7 @@ export async function createCongressAction(formData: FormData) {
   if (!fields.nome) throw new Error("Nome do congresso é obrigatório.");
 
   const responsavelIds = formData.getAll("responsaveis").map(Number).filter(Boolean);
+  const participanteIds = formData.getAll("participantes").map(Number).filter(Boolean);
 
   const db = getDb();
   let newId = 0;
@@ -41,6 +42,10 @@ export async function createCongressAction(formData: FormData) {
       `INSERT OR IGNORE INTO congress_responsibles (congress_id, member_id) VALUES (?, ?)`
     );
     for (const id of responsavelIds) insertResp.run(newId, id);
+    const insertPart = db.prepare(
+      `INSERT OR IGNORE INTO congress_participants (congress_id, member_id) VALUES (?, ?)`
+    );
+    for (const id of participanteIds) insertPart.run(newId, id);
   });
   tx();
 
@@ -55,6 +60,7 @@ export async function updateCongressAction(formData: FormData) {
   if (!fields.nome) throw new Error("Nome do congresso é obrigatório.");
 
   const responsavelIds = formData.getAll("responsaveis").map(Number).filter(Boolean);
+  const participanteIds = formData.getAll("participantes").map(Number).filter(Boolean);
 
   const db = getDb();
   const tx = db.transaction(() => {
@@ -69,6 +75,12 @@ export async function updateCongressAction(formData: FormData) {
       `INSERT OR IGNORE INTO congress_responsibles (congress_id, member_id) VALUES (?, ?)`
     );
     for (const memberId of responsavelIds) insertResp.run(id, memberId);
+
+    db.prepare(`DELETE FROM congress_participants WHERE congress_id = ?`).run(id);
+    const insertPart = db.prepare(
+      `INSERT OR IGNORE INTO congress_participants (congress_id, member_id) VALUES (?, ?)`
+    );
+    for (const memberId of participanteIds) insertPart.run(id, memberId);
   });
   tx();
 

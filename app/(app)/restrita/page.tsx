@@ -11,7 +11,13 @@ const SECTIONS = [
     href: "/restrita/acompanhamento",
     label: "Acompanhamento por congresso",
     icon: "🗂️",
-    desc: "Trabalhos, organizadores e certificados",
+    desc: "Trabalhos, autor/coautores e certificados",
+  },
+  {
+    href: "/restrita/producao-por-membro",
+    label: "Produção por membro",
+    icon: "🏆",
+    desc: "Ranking calculado a partir do Acompanhamento",
   },
   { href: "/restrita/usuarios", label: "Gestão de usuários", icon: "👤", desc: "Login e nível de acesso" },
 ];

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { getDb } from "@/lib/db";
 import { requireRestricted } from "@/lib/auth";
+import { MAX_COAUTORES } from "@/lib/queries/work-tracking";
 import type { StatusAprovacaoTrabalho, StatusSimNao } from "@/lib/types";
 
 const PATH = "/restrita/acompanhamento";
@@ -28,14 +29,20 @@ export async function updateTrackingRowAction(formData: FormData) {
 
   const congressId = toNullableId(formData, "congressId");
   const nomeTrabalho = String(formData.get("nomeTrabalho") || "").trim() || null;
-  const organizador1Id = toNullableId(formData, "organizador1Id");
-  const organizador2Id = toNullableId(formData, "organizador2Id");
+  const autorPrincipalId = toNullableId(formData, "autorPrincipalId");
+  if (!autorPrincipalId) {
+    throw new Error("Autor principal é obrigatório.");
+  }
   const enviadoOrientador = (String(formData.get("enviadoOrientador") || "nao") || "nao") as StatusSimNao;
   const orientadorCorretorId = toNullableId(formData, "orientadorCorretorId");
   const enviadoCongresso = (String(formData.get("enviadoCongresso") || "nao") || "nao") as StatusSimNao;
   const statusAprovacao = (String(formData.get("statusAprovacao") || "aguardando") ||
     "aguardando") as StatusAprovacaoTrabalho;
   const participantes = formData.getAll("participantes").map(Number).filter((n) => n > 0);
+  const coautores = formData.getAll("coautores").map(Number).filter((n) => n > 0);
+  if (coautores.length > MAX_COAUTORES) {
+    throw new Error(`No máximo ${MAX_COAUTORES} coautores por trabalho.`);
+  }
 
   const removerCertificado = formData.get("removerCertificado") === "on";
   const certificado = formData.get("certificado");
@@ -46,15 +53,14 @@ export async function updateTrackingRowAction(formData: FormData) {
   const tx = db.transaction(() => {
     db.prepare(
       `UPDATE work_tracking SET
-        congress_id = ?, nome_trabalho = ?, organizador1_id = ?, organizador2_id = ?,
+        congress_id = ?, nome_trabalho = ?, autor_principal_id = ?,
         enviado_orientador = ?, orientador_corretor_id = ?, enviado_congresso = ?, status_aprovacao = ?,
         updated_at = datetime('now')
        WHERE id = ?`
     ).run(
       congressId,
       nomeTrabalho,
-      organizador1Id,
-      organizador2Id,
+      autorPrincipalId,
       enviadoOrientador,
       orientadorCorretorId,
       enviadoCongresso,
@@ -67,6 +73,12 @@ export async function updateTrackingRowAction(formData: FormData) {
       `INSERT OR IGNORE INTO work_tracking_participants (tracking_id, member_id) VALUES (?, ?)`
     );
     for (const memberId of participantes) insertPart.run(id, memberId);
+
+    db.prepare(`DELETE FROM work_tracking_coauthors WHERE tracking_id = ?`).run(id);
+    const insertCoautor = db.prepare(
+      `INSERT OR IGNORE INTO work_tracking_coauthors (tracking_id, member_id) VALUES (?, ?)`
+    );
+    for (const memberId of coautores) insertCoautor.run(id, memberId);
 
     if (removerCertificado) {
       db.prepare(

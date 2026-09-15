@@ -117,6 +117,13 @@ function migrate(db: Database.Database) {
       UNIQUE(congress_id, member_id)
     );
 
+    CREATE TABLE IF NOT EXISTS congress_participants (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      congress_id INTEGER NOT NULL REFERENCES congresses(id) ON DELETE CASCADE,
+      member_id INTEGER NOT NULL REFERENCES members(id) ON DELETE CASCADE,
+      UNIQUE(congress_id, member_id)
+    );
+
     CREATE TABLE IF NOT EXISTS ideas (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       titulo TEXT NOT NULL,
@@ -188,8 +195,7 @@ function migrate(db: Database.Database) {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       congress_id INTEGER REFERENCES congresses(id) ON DELETE SET NULL,
       nome_trabalho TEXT,
-      organizador1_id INTEGER REFERENCES members(id) ON DELETE SET NULL,
-      organizador2_id INTEGER REFERENCES members(id) ON DELETE SET NULL,
+      autor_principal_id INTEGER REFERENCES members(id) ON DELETE SET NULL,
       enviado_orientador TEXT NOT NULL DEFAULT 'nao' CHECK (enviado_orientador IN ('sim','nao')),
       orientador_corretor_id INTEGER REFERENCES members(id) ON DELETE SET NULL,
       enviado_congresso TEXT NOT NULL DEFAULT 'nao' CHECK (enviado_congresso IN ('sim','nao')),
@@ -209,11 +215,60 @@ function migrate(db: Database.Database) {
       UNIQUE(tracking_id, member_id)
     );
 
+    CREATE TABLE IF NOT EXISTS work_tracking_coauthors (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      tracking_id INTEGER NOT NULL REFERENCES work_tracking(id) ON DELETE CASCADE,
+      member_id INTEGER NOT NULL REFERENCES members(id) ON DELETE CASCADE,
+      UNIQUE(tracking_id, member_id)
+    );
+
     CREATE INDEX IF NOT EXISTS idx_members_tipo ON members(tipo);
     CREATE INDEX IF NOT EXISTS idx_works_status ON works(status);
     CREATE INDEX IF NOT EXISTS idx_ideas_status ON ideas(status);
     CREATE INDEX IF NOT EXISTS idx_work_tracking_congress ON work_tracking(congress_id);
   `);
+
+  migrateWorkTrackingOrganizadores(db);
+}
+
+/**
+ * Migração incremental: instalações antigas tinham organizador1_id/organizador2_id
+ * em work_tracking. Substituído por autor_principal_id (1) + work_tracking_coauthors
+ * (até 8). Preserva dados já existentes: organizador1 vira autor principal,
+ * organizador2 vira o primeiro coautor.
+ */
+function migrateWorkTrackingOrganizadores(db: Database.Database) {
+  const columns = db.prepare(`PRAGMA table_info(work_tracking)`).all() as { name: string }[];
+  const columnNames = new Set(columns.map((c) => c.name));
+
+  if (!columnNames.has("autor_principal_id")) {
+    db.exec(`ALTER TABLE work_tracking ADD COLUMN autor_principal_id INTEGER REFERENCES members(id) ON DELETE SET NULL`);
+  }
+
+  if (columnNames.has("organizador1_id") || columnNames.has("organizador2_id")) {
+    const rows = db
+      .prepare(`SELECT id, organizador1_id, organizador2_id FROM work_tracking`)
+      .all() as { id: number; organizador1_id: number | null; organizador2_id: number | null }[];
+
+    const setAutor = db.prepare(
+      `UPDATE work_tracking SET autor_principal_id = ? WHERE id = ? AND autor_principal_id IS NULL`
+    );
+    const insertCoauthor = db.prepare(
+      `INSERT OR IGNORE INTO work_tracking_coauthors (tracking_id, member_id) VALUES (?, ?)`
+    );
+
+    for (const row of rows) {
+      if (row.organizador1_id) setAutor.run(row.organizador1_id, row.id);
+      if (row.organizador2_id) insertCoauthor.run(row.id, row.organizador2_id);
+    }
+
+    if (columnNames.has("organizador1_id")) {
+      db.exec(`ALTER TABLE work_tracking DROP COLUMN organizador1_id`);
+    }
+    if (columnNames.has("organizador2_id")) {
+      db.exec(`ALTER TABLE work_tracking DROP COLUMN organizador2_id`);
+    }
+  }
 }
 
 function seedIfEmpty(db: Database.Database) {

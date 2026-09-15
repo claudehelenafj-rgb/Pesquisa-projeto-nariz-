@@ -1,5 +1,5 @@
 import { requireRestricted } from "@/lib/auth";
-import { getAllWorkTracking } from "@/lib/queries/work-tracking";
+import { getAllWorkTracking, MAX_COAUTORES } from "@/lib/queries/work-tracking";
 import { getAllCongresses } from "@/lib/queries/congresses";
 import { getMembersOnly, getOrientadoresOnly } from "@/lib/queries/people";
 import { PersonSelect, PersonMultiSelect } from "@/components/PersonSelect";
@@ -54,8 +54,8 @@ export default async function AcompanhamentoPage() {
               <th className="px-2 py-1">Congresso</th>
               <th className="px-2 py-1">Participantes que vão</th>
               <th className="px-2 py-1">Nome do trabalho</th>
-              <th className="px-2 py-1">Organizador 1</th>
-              <th className="px-2 py-1">Organizador 2</th>
+              <th className="px-2 py-1">Autor principal</th>
+              <th className="px-2 py-1">Coautores (máx. {MAX_COAUTORES})</th>
               <th className="px-2 py-1">Enviado p/ orientador</th>
               <th className="px-2 py-1">Orientador que corrigiu</th>
               <th className="px-2 py-1">Enviado p/ congresso</th>
@@ -112,23 +112,25 @@ export default async function AcompanhamentoPage() {
                   <td className="bg-white px-2 py-2">
                     <div className="w-48">
                       <PersonSelect
-                        name="organizador1Id"
+                        name="autorPrincipalId"
                         people={membros}
-                        defaultValue={row.organizador1_id}
+                        defaultValue={row.autor_principal_id}
                         formId={formId}
-                        placeholder="Membro 1..."
+                        placeholder="Autor principal..."
+                        required
                       />
                     </div>
                   </td>
 
                   <td className="bg-white px-2 py-2">
-                    <div className="w-48">
-                      <PersonSelect
-                        name="organizador2Id"
+                    <div className="w-56">
+                      <PersonMultiSelect
+                        name="coautores"
                         people={membros}
-                        defaultValue={row.organizador2_id}
+                        defaultValues={row.coautores.map((c) => c.id)}
                         formId={formId}
-                        placeholder="Membro 2..."
+                        max={MAX_COAUTORES}
+                        placeholder="Adicionar coautor..."
                       />
                     </div>
                   </td>
